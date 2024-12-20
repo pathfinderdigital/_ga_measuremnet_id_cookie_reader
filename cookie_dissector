@@ -1,0 +1,60 @@
+function parseGaCookies() {
+    const getCookie = (name) => {
+        const value = "; " + document.cookie;
+        const parts = value.split("; " + name + "=");
+        if (parts.length == 2) return parts.pop().split(";").shift();
+    }
+
+    const gaCookies = document.cookie.split('; ').filter(cookie => cookie.startsWith('_ga_'));
+    const parsedCookies = [];
+
+    gaCookies.forEach(cookie => {
+        const cookieParts = cookie.split('=');
+        const cookieNameParts = cookieParts[0].split('_');
+        const rawStreamIds = cookieNameParts[2];
+        const streamIds = rawStreamIds.split(',').map(id => id.startsWith('G-') ? id : 'G-' + id);
+        const duplicateStream = streamIds.length > 1;
+        const cookieValue = getCookie('_ga_' + rawStreamIds);
+
+        if(cookieValue.startsWith('GS1')) {
+            const components = cookieValue.split('.');
+
+            if (components.length !== 9) {
+                console.log("Invalid cookie format. Please make sure to provide a valid GA4 cookie.");
+                return;
+            }
+
+            const version = components[0].replace('GS', '');
+            const domainLevel = components[1];
+            const sessionStartAt = new Date(components[2] * 1000);
+            const sessionsCount = components[3];
+            const engagedSession = components[4];
+            const lastEventAt = new Date(components[5] * 1000);
+            const countdown = components[6];
+            const mysteryZero1 = components[7];
+            const mysteryZero2 = components[8];
+            const engagedTime = Math.round((lastEventAt - sessionStartAt) / 1000);
+
+            parsedCookies.push({
+                "Measurement IDs": streamIds,
+                "Version": version,
+                "Domain Level": domainLevel,
+                "Session Start At": sessionStartAt.toISOString(),
+                "Sessions Count": sessionsCount,
+                "Engaged Session": engagedSession,
+                "Last Event At": lastEventAt.toISOString(),
+                "Engaged Time": engagedTime,
+                "Countdown": countdown,
+                "Mystery Zero 1": mysteryZero1,
+                "Mystery Zero 2": mysteryZero2,
+                "Duplicate Stream": duplicateStream
+            });
+        }
+    });
+
+    console.log(JSON.stringify(parsedCookies, null, 2));
+    return parsedCookies;
+}
+
+// Example usage:
+parseGaCookies();
