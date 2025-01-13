@@ -1,4 +1,4 @@
-# _ga_measuremnet_id_cookie_reader
+# GA-Property-Cookie-Dissector
 
 Each GA4 property attached to a web page will drop a cookie named "_ga_[measurement_id]", in addition to the standard _ga cookie.
 
